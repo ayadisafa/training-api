@@ -11,10 +11,10 @@ import os
 app = FastAPI()
 
 # ─── CONFIG ───────────────────────────────────────────────
-MONGO_URI      = os.environ.get("MONGO_URI")        # set in Render env vars
-GEMINI_KEY     = os.environ.get("GEMINI_API_KEY")   # set in Render env vars
-EMAIL_ADDRESS  = os.environ.get("EMAIL_ADDRESS")    # your Gmail
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")   # Gmail app password
+MONGO_URI      = os.environ.get("mongodb+srv://safaayedis_db_user:safa12@cluster0.onrrl8r.mongodb.net/?appName=Cluster0")        # set in Render env vars
+GEMINI_KEY     = os.environ.get("AIzaSyD-Q1jLE7J0_E401S54ZNWCLHujY36KRmU")   # set in Render env vars
+EMAIL_ADDRESS  = os.environ.get("hejer.ayedi12@gmail.com")    # your Gmail
+EMAIL_PASSWORD = os.environ.get("ftsf zqsu jvtg plbq")   # Gmail app password
 # ──────────────────────────────────────────────────────────
 
 client = MongoClient(MONGO_URI)
