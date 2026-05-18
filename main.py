@@ -3,9 +3,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 from datetime import datetime
 import requests
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+
 import os
 from bson import ObjectId
 
@@ -45,57 +43,32 @@ def root():
 @app.get("/candidates")
 def get_candidates():
     docs = list(db.candidates.find())
-
     for d in docs:
         d["_id"] = str(d["_id"])   # convert ObjectId to string
-
     return docs
-# ─── REGISTER ENDPOINT ───────────────────────────────────────
+    
+# Register candidate and save to MongoDB
 @app.post("/register")
 def register(candidate: Candidate):
-    doc = candidate.dict()
+    try:
+        doc = candidate.dict()
 
-    # ✅ Always default status
-    doc["status"] = "registered_unpaid"
+        # default status
+        doc["status"] = "registered_unpaid"
+        doc["submittedAt"] = datetime.utcnow().isoformat()
 
-    # save submit time
-    doc["submittedAt"] = datetime.utcnow().isoformat()
+        result = collection.insert_one(doc)
 
-    db.candidates.insert_one(doc)
+        return {
+            "success": True,
+            "message": "Candidate saved successfully",
+            "id": str(result.inserted_id),
+            "status": doc["status"]
+        }
 
-    return {"success": True, "message": "Saved to MongoDB", "status": doc["status"]}
-# ─── GEMINI EMAIL ───────────────────────────────────────────
-def generate_message(candidate: Candidate) -> str:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}"
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    prompt = f"""
-Write a professional registration confirmation email.
-
-Name: {candidate.name}
-Program: {candidate.training}
-
-Include:
-- Welcome message
-- Confirmation
-- Payment instruction
-- Training details after payment
-"""
-
-    response = requests.post(url, json={
-        "contents": [{"parts": [{"text": prompt}]}]
-    })
-
-    data = response.json()
-
-    return data["candidates"][0]["content"]["parts"][0]["text"]
-
-
-# ─── EMAIL SENDER ────────────────────────────────────────────
-def send_email(to_email: str, name: str, body: str):
-    msg = MIMEMultipart()
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = to_email
-    msg["Subject"] = f"Registration Confirmed – Welcome {name}"
 
     msg.attach(MIMEText(body, "plain"))
 
