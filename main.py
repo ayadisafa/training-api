@@ -7,6 +7,37 @@ import requests
 import os
 from bson import ObjectId
 
+from fastapi import FastAPI
+from pymongo import MongoClient
+from datetime import datetime
+import os
+
+app = FastAPI()
+
+MONGO_URI = os.environ.get("mongodb+srv://safaayedis_db_user:safa12@cluster0.onrrl8r.mongodb.net/training_db?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(MONGO_URI)
+db = client["training_db"]
+collection = db["candidates"]
+
+@app.get("/")
+def root():
+    return {"status": "running"}
+
+@app.get("/test-insert")
+def test_insert():
+    doc = {
+        "name": "Render Test",
+        "email": "render@test.com",
+        "createdAt": datetime.utcnow().isoformat(),
+        "status": "registered_unpaid"
+    }
+    result = collection.insert_one(doc)
+    return {"inserted_id": str(result.inserted_id)}
+
+@app.get("/count")
+def count():
+    return {"count": collection.count_documents({})}
+
 app = FastAPI()
 
 # ─── CONFIG (USE ENV VARIABLES PROPERLY) ─────────────────────
@@ -18,9 +49,14 @@ EMAIL_PASSWORD = os.environ.get("ftsf zqsu jvtg plbq")
 
 # ─────────────────────────────────────────────────────────────
 
-client = MongoClient(MONGO_URI)
-db = client["training_db"]
-collection = db["candidates"]
+try:
+    client = MongoClient(MONGO_URI)
+    # This will create a database named 'training_db' and a collection named 'candidates'
+    db = client["training_db"]
+    candidates_collection = db["candidates"]
+    print("✅ Connected to MongoDB Atlas successfully!")
+except Exception as e:
+    print(f"❌ Failed to connect to MongoDB: {e}")
 
 
 class Candidate(BaseModel):
