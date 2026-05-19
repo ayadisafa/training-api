@@ -28,7 +28,6 @@ def test_insert():
     doc = {
         "name": "Render Test",
         "email": "render@test.com",
-        "createdAt": datetime.utcnow().isoformat(),
         "status": "registered_unpaid"
     }
     result = collection.insert_one(doc)
